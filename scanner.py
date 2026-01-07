@@ -1,22 +1,31 @@
 import socket
 
-target = "127.0.0.1"
+# Target is your own computer for safe practice
+target = "127.0.0.1" 
 
 def scan_port(port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(0.1) # Shorter timeout makes the scan faster
-    result = s.connect_ex((target, port))
-    if result == 0:
-        print(f"\n[!] Port {port} is OPEN")
-    s.close()
+    try:
+        # 'with' statement ensures the socket closes after the block
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5) 
+            result = s.connect_ex((target, port))
+            
+            if result == 0:
+                print(f"\n[!] Port {port} is OPEN")
+                # Try to capture the 'Secret Flag'
+                try:
+                    data = s.recv(1024)
+                    if data:
+                        print(f"    [+] Data Received: {data.decode().strip()}")
+                except socket.timeout:
+                    print("    [-] No data received (Timeout)")
+    except Exception as e:
+        print(f"\n[!] Error: {e}")
 
-print(f"Scanning {target} from port 1 to 1024...")
-
-# This will loop through every number from 1 to 1024
-for port in range(1, 1025):
-    # Print a small progress update every 100 ports
-    if port % 100 == 0:
-        print(f"Progress: Checking port {port}...")
+print(f"--- Starting Scan on {target} ---")
+# We scan specifically around the port our server is using
+for port in range(9990, 10001):
+    print(".", end="", flush=True)
     scan_port(port)
 
-print("\nScan complete.")
+print("\n\n--- Scan Finished ---")
